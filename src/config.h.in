@@ -1,0 +1,6 @@
+#pragma once
+
+namespace mc_rtc
+{
+  constexpr auto SO101_DESCRIPTION_PATH = "@SO101_DESCRIPTION_PATH@";
+}
