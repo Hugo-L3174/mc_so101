@@ -20,7 +20,7 @@ SO101RobotModule::SO101RobotModule(const std::string & variant)
               std::string(mc_rtc::SO101_DESCRIPTION_PATH) + "/urdf/" + Variant(variant) + ".urdf")
 {
   mc_rtc::log::success("SO101RobotModule loaded with name: {}", name);
-  rsdf_dir = std::string(mc_rtc::SO101_DESCRIPTION_PATH) + "/rsdf";
+  rsdf_dir = std::string(mc_rtc::SO101_DESCRIPTION_PATH) + "/rsdf/" + name;
 
   mc_rtc::log::success("SO101RobotModule using URDF \"{}\"", urdf_path);
   mc_rtc::log::success("SO101RobotModule using path \"{}\" for rsdf", rsdf_dir);
