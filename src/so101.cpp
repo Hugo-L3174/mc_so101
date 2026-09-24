@@ -21,6 +21,8 @@ SO101RobotModule::SO101RobotModule(const std::string & variant)
 {
   mc_rtc::log::success("SO101RobotModule loaded with name: {}", name);
   rsdf_dir = std::string(mc_rtc::SO101_DESCRIPTION_PATH) + "/rsdf/" + name;
+  // Still using the convexes while there are still issues with automated mesh sampling in mc_rtc
+  convex_dir = std::string(mc_rtc::SO101_DESCRIPTION_PATH) + "/convex";
 
   mc_rtc::log::success("SO101RobotModule using URDF \"{}\"", urdf_path);
   mc_rtc::log::success("SO101RobotModule using path \"{}\" for rsdf", rsdf_dir);
@@ -28,32 +30,15 @@ SO101RobotModule::SO101RobotModule(const std::string & variant)
   // Basic initialization from URDF with fixed base set to true
   init(rbd::parsers::from_urdf_file(urdf_path, true));
 
-  _ref_joint_order = {"shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll"};
-
-  if(variant == "follower")
-  {
-    _ref_joint_order.push_back("gripper");
-  }
-  else
-  {
-    // @todo find model joint for leader handle
-  }
+  _ref_joint_order = {"shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "gripper"};
 
   using namespace mc_rtc::constants;
   _stance["shoulder_pan"] = {0.0};
-  _stance["shoulder_lift"] = {0.0};
-  _stance["elbow_flex"] = {0.0};
-  _stance["wrist_flex"] = {0.0};
+  _stance["shoulder_lift"] = {-1.57};
+  _stance["elbow_flex"] = {1.57};
+  _stance["wrist_flex"] = {0.4};
   _stance["wrist_roll"] = {0.0};
-
-  if(variant == "leader")
-  {
-    _stance["gripper"] = {0.0};
-  }
-  else
-  {
-    // @todo find model joint for leader handle
-  }
+  _stance["gripper"] = {0.0};
 
   _default_attitude = {{1., 0., 0., 0., 0., 0., 0.}};
 
@@ -71,8 +56,13 @@ SO101RobotModule::SO101RobotModule(const std::string & variant)
   // Sensors
   // @todo torque sensors from current data ?
 
-  _minimalSelfCollisions = {mc_rbdyn::Collision("base*", "gripper*", 0.02, 0.01, 0.)};
-  // @todo add others
+  _minimalSelfCollisions = {
+      mc_rbdyn::Collision("base_link*", "gripper_link*", 0.02, 0.01, 0.),
+      mc_rbdyn::Collision("shoulder_link*", "gripper_link*", 0.02, 0.01, 0.),
+      // Only upper_arm_link_1 (arm part): upper_arm_link_0 is the motor and always linked to lower arm
+      mc_rbdyn::Collision("upper_arm_link_1", "lower_arm_link_1", 0.005, 0.001, 0.),
+      mc_rbdyn::Collision("wrist_link*", "shoulder_link*", 0.02, 0.01, 0.),
+  };
   _commonSelfCollisions = _minimalSelfCollisions;
 }
 
